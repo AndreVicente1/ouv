@@ -18,6 +18,21 @@ let tail (lst: big_int_list): big_int_list =
   match lst with
   | [] -> []
   | _ :: xs -> xs
+
+
+let decomposition (lst: big_int_list): bool list =
+  let rec aux lst acc =
+    match lst with
+    | [] -> acc
+    | x :: xs ->
+      let bits = ref [] in
+      for i = 0 to 63 do
+        bits := (Int64.logand x (Int64.shift_left 1L i) <> 0L) :: !bits
+      done;
+      aux xs (List.rev_append !bits acc)
+  in
+  aux lst []
+
 ```
 
 
