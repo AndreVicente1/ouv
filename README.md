@@ -1,5 +1,25 @@
 # ouv
 
+## Échauffement
+
+```
+type big_int_list = int64 list
+
+let insert (lst: big_int_list) (x: int64): big_int_list = 
+  List.append lst [x]
+
+let head (lst: big_int_list): int64 option = 
+  match lst with
+  | [] -> None
+  | x :: _ -> Some x
+
+
+let tail (lst: big_int_list): big_int_list = 
+  match lst with
+  | [] -> []
+  | _ :: xs -> xs
+```
+
 
 ## Arbre de décision
 
