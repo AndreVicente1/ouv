@@ -59,13 +59,8 @@ let rec cons_arbre depth = function
       let half = List.length xs / 2 in
       let left, right = split_at half xs in
       Node(depth, cons_arbre (depth+1) left, cons_arbre (depth+1) right)
-```
 
 
-La fonction List.split_at est une fonction hypothétique qui divise une liste en deux à un certain index. OCaml n'a pas cette fonction dans sa bibliothèque standard, donc vous devrez l'implémenter vous-même ou utiliser une approche différente pour diviser la liste en deux.
-
-
-```
 let split_at n xs =
   let rec aux i acc = function
     | [] -> List.rev acc, []
