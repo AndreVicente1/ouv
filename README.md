@@ -39,7 +39,7 @@ let split_at n xs =
 
 
 
-let truth_table = [true; false; true; false]
+let truth_table = [true; true;false; true; false; true; false; false; true; false; true;false;false;true;true;false]
 let decision_tree = cons_arbre 1 truth_table
 
 
@@ -81,12 +81,12 @@ Ensuite, nous définissons la fonction CompressionParListe qui  renvoie un coupl
 
 
 
-let rec CompressionParListe g listeDejaVus =
+let rec compressionParListe g listeDejaVus =
   match g with
   | Leaf _ -> g, listeDejaVus
   | Node(depth, left, right) ->
-    let left, listeDejaVus = CompressionParListe left listeDejaVus in
-    let right, listeDejaVus = CompressionParListe right listeDejaVus in
+    let left, listeDejaVus = compressionParListe left listeDejaVus in
+    let right, listeDejaVus = compressionParListe right listeDejaVus in
     let n = liste_feuilles g in
     match find_replace n listeDejaVus with
     | Some node -> node, listeDejaVus
@@ -155,15 +155,16 @@ let rec insert_tree node = function
 
 
 
-let rec CompressionParArbre g arbreDejaVus tableVerite =
+let rec compressionParArbre g arbreDejaVus tableVerite =
   match g with
-  | Leaf _ -> g, arbreDejaVus
+  | Leaf  -> g, arbreDejaVus
   | Node(depth, left, right) ->
-    let left, arbreDejaVus = CompressionParListe left arbreDejaVus (false :: tableVerite) in
-    let right, arbreDejaVus = CompressionParListe right arbreDejaVus (true :: tableVerite) in
-    let n = liste_feuilles g in
-    match search_tree (tableVerite, arbreDejaVus) with
-    | Some node -> node, arbreDejaVus
-    | None -> 
-      let g = Node(depth, left, right) in 
-      g, insert_tree g (tableVerite, arbreDejaVus)
+      let left, arbreDejaVus = compressionParArbre left arbreDejaVus (false :: tableVerite) in
+      let right, arbreDejaVus = compressionParArbre right arbreDejaVus (true :: tableVerite) in
+      match search_tree (tableVerite, arbreDejaVus) with
+      | Some node -> Node(Some node, Leaf, Leaf), arbreDejaVus
+      | None -> 
+          let g = Node(depth, left, right) in 
+          (match g with
+           | Node(Some node, _, _) -> g, insert_tree node (tableVerite, arbreDejaVus)
+           | _ -> failwith "Unexpected case")
