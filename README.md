@@ -31,11 +31,15 @@ let decomposition (lst: big_int_list): bool list =
     match lst with
     | [] -> acc
     | x :: xs ->
-      let bits = ref [] in
-      for i = 0 to 63 do
-        bits := (Int64.logand x (Int64.shift_left 1L i) <> 0L) :: !bits
-      done;
-      aux xs (List.rev_append !bits acc)
+      let rec loop i bits =
+        if i = 64 then 
+          bits
+        else
+          let bit = (Int64.logand x (Int64.shift_left 1L i) <> 0L) in
+          loop (i + 1) (bit :: bits)
+      in
+      let bits = loop 0 [] in
+      aux xs (List.rev_append bits acc)
   in
   aux lst []
 
@@ -150,9 +154,13 @@ and dot_edge oc parent style = function
       let id = string_of_int depth in
       Printf.fprintf oc "%s -- %s [style=%s];\n" parent id style
 
+let write_graph oc tree =
+  Printf.fprintf oc "graph {\n";
+  dot oc tree;
+  Printf.fprintf oc "}\n"
 
-let oc = open_out "graph.dot" in
-dot oc decision_tree;
+let oc = open_out "graph.dot";;
+write_graph oc decision_tree;
 close_out oc
 ```
 
