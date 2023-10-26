@@ -15,7 +15,7 @@ let split_at n xs =
 
 
 let rec cons_arbre depth = function
-  | [] -> failwith "Empty truth table"
+  | [] -> failwith "table vérité vide"
   | [x] -> Leaf x
   | xs ->
       let half = List.length xs / 2 in
@@ -30,7 +30,7 @@ let rec liste_feuilles = function
 let rec print_tree = function
   | Leaf b -> print_endline (string_of_bool b)
   | Node (depth, left, right) ->
-      print_endline ("Node depth: " ^ string_of_int depth);
+      print_endline ("profondeur: " ^ string_of_int depth);
       print_tree left;
       print_tree right
 
@@ -47,24 +47,24 @@ let rec find_replace n = function
 
           
 
-let rec dot oc = function
-  | Leaf b -> 
-      let id = string_of_bool b in
-      Printf.fprintf oc "%s [label=\"%s\"];\n" id id
-  | Node (depth, left, right) -> 
-      let id = string_of_int depth in
-      Printf.fprintf oc "%s [label=\"%s\"];\n" id id;
-      dot_edge oc id "dashed" left;
-      dot_edge oc id "solid" right
+let id = ref 0
 
-and dot_edge oc parent style = function
-  | Leaf b -> 
-      let id = string_of_bool b in
-      Printf.fprintf oc "%s -- %s [style=%s];\n" parent id style
-  | Node (depth, _, _) -> 
-      let id = string_of_int depth in
-      Printf.fprintf oc "%s -- %s [style=%s];\n" parent id style
+let rec to_dot = function
+  | Leaf b ->
+      let i = !id in
+      incr id;
+      Printf.sprintf "%d [label=\"%b\"];\n" i b, i
+  | Node (v, left, right) ->
+      let i = !id in
+      incr id;
+      let left_dot, left_id = to_dot left in
+      let right_dot, right_id = to_dot right in
+      Printf.sprintf "%d [label=\"%d\"];\n%d -- %d [style=dotted];\n%d -- %d;\n%s%s"
+        i v i left_id i right_id left_dot right_dot, i
 
+let tree_to_dot tree =
+  let dot, _ = to_dot tree in
+  Printf.sprintf "graph {\n%s\n}" dot
         
 let rec compressionParListe g listeDejaVus =
   match g with
@@ -142,15 +142,24 @@ let decomposition (lst: big_int_list): bool list =
         aux xs (List.rev_append !bits acc)
   in
   aux lst []
+  
     
 let truth_table = [true; true;false; true; false; true; false; false; true; false; true;false;false;true;true;false]
 let decision_tree = cons_arbre 1 truth_table
-let write_graph oc tree =
-  Printf.fprintf oc "graph {\n";
-  dot oc tree;
-  Printf.fprintf oc "}\n"
+let truth_table_25899 = decomposition [25899L]
+let decision_tree_25899 = cons_arbre 1 truth_table_25899
+
+let compression,_ = compressionParListe decision_tree_25899 []
+
+let dot_representation = tree_to_dot decision_tree_25899;;
+
 
 let oc = open_out "graph.dot";;
-write_graph oc decision_tree;
-close_out oc
-    
+output_string oc dot_representation;
+close_out oc;;
+
+let dot_representation_compresse = tree_to_dot compression;;
+
+let oc2 = open_out "graph_compresse.dot";;
+output_string oc2 dot_representation_compresse;
+close_out oc2;
