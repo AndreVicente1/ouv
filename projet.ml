@@ -77,6 +77,27 @@ let rec compressionParListe g listeDejaVus =
       | Some node -> node, listeDejaVus
       | None -> let g = Node(depth, left, right) in g, (n, g) :: listeDejaVus
 
+let rec compressionParListe2 g listeDejaVus =
+  match g with
+  | Leaf _ -> g, listeDejaVus  (* Si g est une feuille, renvoyez g inchangé avec la liste déjà vue *)
+  | Node(depth, left, right) ->
+      let left, newDejaVus = compressionParListe2 left listeDejaVus in
+      let right, newDejaVus = compressionParListe2 right newDejaVus in
+      let n = liste_feuilles g in  (* Calculer le nombre de feuilles dans g  *)
+
+      (* Recherchez un remplacement dans listeDejaVus pour le nombre de feuilles n *)
+      match find_replace n listeDejaVus with
+      | Some node_ref -> !node_ref, listeDejaVus  (* Si un remplacement est trouvé, renvoyez le nœud de remplacement *)
+      | None ->
+          let g = Node(depth, left, right) in
+          let node_ref = ref g in  (* Créez une référence mutable node_ref pour stocker le nœud actuel *)
+
+          (* Mettez à jour la référence interne avec le nœud actuel *)
+          (match g with
+           | Node(_, _, _) -> node_ref := g;
+           | _ -> failwith "Cas inattendu");  (* Cela ne devrait pas se produire en théorie, donc une erreur est générée *)
+
+          !node_ref, (n, node_ref) :: listeDejaVus  (* Renvoyez le nœud actuel et ajoutez-le à la liste déjà vue avec le nombre de feuilles n *)
 
 type arbreDejaVus =
   | Node of node option * arbreDejaVus * arbreDejaVus
@@ -149,7 +170,7 @@ let decision_tree = cons_arbre 1 truth_table
 let truth_table_25899 = decomposition [25899L]
 let decision_tree_25899 = cons_arbre 1 truth_table_25899
 
-let compression,_ = compressionParListe decision_tree_25899 []
+let compression,_ = compressionParListe2 decision_tree_25899 []
 
 let dot_representation = tree_to_dot decision_tree_25899;;
 
